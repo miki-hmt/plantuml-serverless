@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: PlantUML Serverless API
+
+Globals:
+  Function:
+    Runtime: java8
+    Timeout: 30
+    MemorySize: 1024
+
+Resources:
+  PlantUMLAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: plantuml
+      DefinitionBody:
+          swagger: 2.0
+          info:
+            title:
+              Ref: AWS::StackName
+          paths:
+            "/":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UIFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+            "/png/{encodedUml}":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PngFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+                  contentHandling: CONVERT_TO_BINARY
+            "/img/{encodedUml}":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ImgFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+                  contentHandling: CONVERT_TO_BINARY
+            "/svg/{encodedUml}":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SvgFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+                  contentHandling: CONVERT_TO_BINARY
+            "/txt/{encodedUml}":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TxtFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+                  contentHandling: CONVERT_TO_BINARY
+            "/map/{encodedUml}":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MapFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+                  contentHandling: CONVERT_TO_BINARY
+            "/check/{encodedUml}":
+              get:
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SyntaxFunction.Arn}/invocations"
+                  httpMethod: POST
+                  type: aws_proxy
+                  contentHandling: CONVERT_TO_BINARY
+          x-amazon-apigateway-binary-media-types:
+            - "*/*"
+  UIFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.UIHandler::handleRequest
+      CodeUri: !Ref paramCodeUri
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+  PngFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.PngHandler::handleRequest
+      CodeUri: !Ref paramCodeUri
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /png/{encodedUml}
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+  ImgFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.PngHandler::handleRequest
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /img/{encodedUml}
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+  SvgFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.SvgHandler::handleRequest
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /svg/{encodedUml}
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+  TxtFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.TxtHandler::handleRequest
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /txt/{encodedUml}
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+  MapFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.MapHandler::handleRequest
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /map/{encodedUml}
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+  SyntaxFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.nitor.plantuml.lambda.SyntaxHandler::handleRequest
+      Timeout: 30
+      CodeUri: target/plantuml-serverless-0.0.7-DRAWIO.jar
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /check/{encodedUml}
+            Method: get
+            RestApiId: !Ref PlantUMLAPI
+
+Outputs:
+  ApiUrl:
+    Description: URL of your API endpoint
+    Value: !Sub "https://${PlantUMLAPI}.execute-api.${AWS::Region}.amazonaws.com/plantuml"
+  ExampleDiagram:
+    Description: Example URL to render a PlantUML diagram
+    Value: !Sub "https://${PlantUMLAPI}.execute-api.${AWS::Region}.amazonaws.com/plantuml/png/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000"
